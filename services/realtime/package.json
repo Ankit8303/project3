@@ -25,7 +25,7 @@
     "@types/dotenv": "^8.2.3",
     "@types/express": "^5.0.6",
     "@types/socket.io": "^3.0.2",
-    "concurrently": "^9.2.1",
+    "concurrently": "^10.0.5",
     "typescript": "^5.9.3",
     "shell-quote": "1.12.0"
   }
