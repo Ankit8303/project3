@@ -1,23 +1,27 @@
-FROM node:22.20.0-alpine3.22 AS builder
+FROM node:22.22.3-alpine3.24 AS builder
+
+RUN apk update && apk upgrade --no-cache
 
 WORKDIR /app
 
 COPY package*.json ./
-RUN npm install --global npm@11.6.2 && npm ci
+RUN npm install --global npm@12.2.0 && npm ci
 
 COPY tsconfig.json ./
 COPY src ./src
 
 RUN npm run build
 
-FROM node:22.20.0-alpine3.22 AS runtime
+FROM node:22.22.3-alpine3.24 AS runtime
 
 ENV NODE_ENV=production
 ENV PORT=5004
+RUN apk update && apk upgrade --no-cache
+
 WORKDIR /app
 
 COPY package*.json ./
-RUN npm install --global npm@11.6.2 && npm ci --omit=dev && npm cache clean --force
+RUN npm install --global npm@12.2.0 && npm ci --omit=dev && npm cache clean --force && rm -rf /usr/local/lib/node_modules/npm /usr/local/lib/node_modules/corepack /usr/local/bin/npm /usr/local/bin/npx
 
 COPY --from=builder /app/dist ./dist
 
