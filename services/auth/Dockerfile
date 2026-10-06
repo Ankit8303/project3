@@ -3,7 +3,7 @@ FROM node:22.20.0-alpine3.22 AS builder
 WORKDIR /app
 
 COPY package*.json ./
-RUN npm ci
+RUN npm install --global npm@11.6.2 && npm ci
 
 COPY tsconfig.json ./
 COPY src ./src
@@ -17,7 +17,7 @@ ENV PORT=5000
 WORKDIR /app
 
 COPY package*.json ./
-RUN npm ci --omit=dev && npm cache clean --force
+RUN npm install --global npm@11.6.2 && npm ci --omit=dev && npm cache clean --force
 
 COPY --from=builder /app/dist ./dist
 
