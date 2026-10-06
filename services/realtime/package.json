@@ -26,6 +26,7 @@
     "@types/express": "^5.0.6",
     "@types/socket.io": "^3.0.2",
     "concurrently": "^9.2.1",
-    "typescript": "^5.9.3"
+    "typescript": "^5.9.3",
+    "shell-quote": "1.12.0"
   }
 }
