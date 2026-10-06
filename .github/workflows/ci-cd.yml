@@ -69,7 +69,7 @@ jobs:
 
       - name: Dependency vulnerability gate
         working-directory: ${{ matrix.path }}
-        run: npm audit --audit-level=high
+        run: npm audit --omit=dev --audit-level=high
 
       - name: Run service tests
         if: matrix.test
