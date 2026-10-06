@@ -60,6 +60,9 @@ jobs:
           cache: npm
           cache-dependency-path: ${{ matrix.path }}/package-lock.json
 
+      - name: Use npm 11 for lockfile compatibility
+        run: npm install --global npm@11.6.2
+
       - name: Install locked dependencies
         working-directory: ${{ matrix.path }}
         run: npm ci
