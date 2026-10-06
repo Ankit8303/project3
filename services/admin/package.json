@@ -25,5 +25,8 @@
     "jsonwebtoken": "^9.0.3",
     "mongodb": "^7.1.0",
     "typescript": "^5.9.3"
+  },
+  "devDependencies": {
+    "shell-quote": "1.12.0"
   }
 }
