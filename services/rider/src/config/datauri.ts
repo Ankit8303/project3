@@ -1,12 +1,25 @@
-import DataUriParser from "datauri/parser.js";
-import path from "path";
+import path from "node:path";
 
-const getBuffer = (file: any) => {
-  const parser = new DataUriParser();
+const MIME_TYPES: Record<string, string> = {
+  ".avif": "image/avif",
+  ".gif": "image/gif",
+  ".jpeg": "image/jpeg",
+  ".jpg": "image/jpeg",
+  ".png": "image/png",
+  ".webp": "image/webp",
+};
 
-  const extName = path.extname(file.originalname).toString();
+const getBuffer = (file: { originalname: string; buffer: Buffer }) => {
+  const extName = path.extname(file.originalname).toLowerCase();
+  const mimeType = MIME_TYPES[extName];
 
-  return parser.format(extName, file.buffer);
+  if (!mimeType) {
+    throw new Error("Unsupported image type");
+  }
+
+  return {
+    content: `data:${mimeType};base64,${file.buffer.toString("base64")}`,
+  };
 };
 
 export default getBuffer;
