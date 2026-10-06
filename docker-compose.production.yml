@@ -1,0 +1,96 @@
+name: tomato-production
+
+services:
+  auth:
+    image: ${IMAGE_NAMESPACE}/auth:${IMAGE_TAG}
+    env_file: [.env.production]
+    environment: { PORT: 5000, NODE_ENV: production }
+    ports: ["127.0.0.1:5000:5000"]
+    restart: unless-stopped
+    init: true
+    read_only: true
+    tmpfs: [/tmp]
+    cap_drop: [ALL]
+    security_opt: ["no-new-privileges:true"]
+    mem_limit: 256m
+    cpus: 0.50
+    healthcheck: { test: ["CMD", "node", "-e", "fetch('http://127.0.0.1:5000/health').then(r=>{if(!r.ok)process.exit(1)}).catch(()=>process.exit(1))"], interval: 10s, timeout: 3s, retries: 6, start_period: 10s }
+
+  restaurant:
+    image: ${IMAGE_NAMESPACE}/restaurant:${IMAGE_TAG}
+    env_file: [.env.production]
+    environment: { PORT: 5001, NODE_ENV: production }
+    ports: ["127.0.0.1:5001:5001"]
+    restart: unless-stopped
+    init: true
+    read_only: true
+    tmpfs: [/tmp]
+    cap_drop: [ALL]
+    security_opt: ["no-new-privileges:true"]
+    mem_limit: 512m
+    cpus: 1.00
+    healthcheck: { test: ["CMD", "node", "-e", "fetch('http://127.0.0.1:5001/health').then(r=>{if(!r.ok)process.exit(1)}).catch(()=>process.exit(1))"], interval: 10s, timeout: 3s, retries: 6, start_period: 10s }
+
+  utils:
+    image: ${IMAGE_NAMESPACE}/utils:${IMAGE_TAG}
+    env_file: [.env.production]
+    environment: { PORT: 5002, NODE_ENV: production, ALLOW_LOCAL_UPLOADS: "false" }
+    ports: ["127.0.0.1:5002:5002"]
+    restart: unless-stopped
+    init: true
+    read_only: true
+    tmpfs: [/tmp]
+    cap_drop: [ALL]
+    security_opt: ["no-new-privileges:true"]
+    mem_limit: 512m
+    cpus: 1.00
+    healthcheck: { test: ["CMD", "node", "-e", "fetch('http://127.0.0.1:5002/health').then(r=>{if(!r.ok)process.exit(1)}).catch(()=>process.exit(1))"], interval: 10s, timeout: 3s, retries: 6, start_period: 10s }
+
+  realtime:
+    image: ${IMAGE_NAMESPACE}/realtime:${IMAGE_TAG}
+    env_file: [.env.production]
+    environment: { PORT: 5004, NODE_ENV: production }
+    ports: ["127.0.0.1:5004:5004"]
+    restart: unless-stopped
+    init: true
+    read_only: true
+    tmpfs: [/tmp]
+    cap_drop: [ALL]
+    security_opt: ["no-new-privileges:true"]
+    mem_limit: 512m
+    cpus: 1.00
+    healthcheck: { test: ["CMD", "node", "-e", "fetch('http://127.0.0.1:5004/health').then(r=>{if(!r.ok)process.exit(1)}).catch(()=>process.exit(1))"], interval: 10s, timeout: 3s, retries: 6, start_period: 10s }
+
+  rider:
+    image: ${IMAGE_NAMESPACE}/rider:${IMAGE_TAG}
+    env_file: [.env.production]
+    environment: { PORT: 5005, NODE_ENV: production }
+    ports: ["127.0.0.1:5005:5005"]
+    restart: unless-stopped
+    init: true
+    read_only: true
+    tmpfs: [/tmp]
+    cap_drop: [ALL]
+    security_opt: ["no-new-privileges:true"]
+    mem_limit: 512m
+    cpus: 1.00
+    healthcheck: { test: ["CMD", "node", "-e", "fetch('http://127.0.0.1:5005/health').then(r=>{if(!r.ok)process.exit(1)}).catch(()=>process.exit(1))"], interval: 10s, timeout: 3s, retries: 6, start_period: 10s }
+
+  admin:
+    image: ${IMAGE_NAMESPACE}/admin:${IMAGE_TAG}
+    env_file: [.env.production]
+    environment: { PORT: 5006, NODE_ENV: production }
+    ports: ["127.0.0.1:5006:5006"]
+    restart: unless-stopped
+    init: true
+    read_only: true
+    tmpfs: [/tmp]
+    cap_drop: [ALL]
+    security_opt: ["no-new-privileges:true"]
+    mem_limit: 256m
+    cpus: 0.50
+    healthcheck: { test: ["CMD", "node", "-e", "fetch('http://127.0.0.1:5006/health').then(r=>{if(!r.ok)process.exit(1)}).catch(()=>process.exit(1))"], interval: 10s, timeout: 3s, retries: 6, start_period: 10s }
+
+networks:
+  default:
+    name: tomato-production

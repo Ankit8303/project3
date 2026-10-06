@@ -1,0 +1,217 @@
+@import "tailwindcss";
+
+@layer base {
+  body {
+    font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    letter-spacing: -0.015em;
+    background-color: #FAFAFC;
+    color: #0F172A;
+  }
+
+  h1, h2, h3, h4, .font-heading {
+    font-family: 'Outfit', 'Plus Jakarta Sans', sans-serif;
+    letter-spacing: -0.02em;
+  }
+}
+
+/* Custom modern scrollbar */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #CBD5E1;
+  border-radius: 9999px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #94A3B8;
+}
+
+/* Glassmorphism & Surface Utilities */
+.glass-nav {
+  background: rgba(255, 255, 255, 0.88);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border-bottom: 1px solid rgba(226, 232, 240, 0.7);
+}
+
+.glass-card {
+  background: rgba(255, 255, 255, 0.92);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(241, 245, 249, 1);
+}
+
+.food-card-hover {
+  transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.food-card-hover:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 20px 25px -5px rgba(15, 23, 42, 0.08), 0 8px 10px -6px rgba(15, 23, 42, 0.04);
+}
+
+/* Brand Gradients */
+.brand-gradient {
+  background: linear-gradient(135deg, #E23744 0%, #FF4D5B 50%, #FF6B78 100%);
+}
+
+.brand-gradient-subtle {
+  background: linear-gradient(135deg, rgba(226, 55, 68, 0.08) 0%, rgba(255, 77, 91, 0.04) 100%);
+}
+
+.accent-glow {
+  box-shadow: 0 8px 24px -4px rgba(226, 55, 68, 0.35);
+}
+
+/* Custom Micro Animations */
+@keyframes subtle-pulse {
+  0%, 100% { transform: scale(1); opacity: 1; }
+  50% { transform: scale(1.04); opacity: 0.9; }
+}
+
+.animate-subtle-pulse {
+  animation: subtle-pulse 2.4s ease-in-out infinite;
+}
+
+@keyframes float-slow {
+  0%, 100% { transform: translateY(0px); }
+  50% { transform: translateY(-6px); }
+}
+
+.animate-float {
+  animation: float-slow 4s ease-in-out infinite;
+}
+
+/* Modern Leaflet Map Overrides */
+.leaflet-container {
+  font-family: inherit !important;
+  background-color: #f1f5f9 !important;
+}
+
+.leaflet-tile-pane {
+  filter: contrast(1.04) saturate(1.1) brightness(1.02);
+}
+
+.leaflet-popup-content-wrapper {
+  background: rgba(255, 255, 255, 0.96) !important;
+  backdrop-filter: blur(16px) !important;
+  -webkit-backdrop-filter: blur(16px) !important;
+  border-radius: 18px !important;
+  box-shadow: 0 20px 25px -5px rgba(15, 23, 42, 0.15), 0 8px 10px -6px rgba(15, 23, 42, 0.08) !important;
+  border: 1px solid rgba(226, 232, 240, 0.9) !important;
+  padding: 4px 6px !important;
+}
+
+.leaflet-popup-tip {
+  background: rgba(255, 255, 255, 0.96) !important;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05) !important;
+}
+
+.leaflet-routing-container {
+  display: none !important;
+}
+
+/* Radar pulse halo for live rider marker */
+@keyframes radar-halo {
+  0% { transform: scale(0.6); opacity: 0.9; }
+  75%, 100% { transform: scale(2.2); opacity: 0; }
+}
+
+.rider-radar-halo {
+  position: absolute;
+  inset: -6px;
+  border-radius: 9999px;
+  background: rgba(226, 55, 68, 0.45);
+  animation: radar-halo 2s cubic-bezier(0.2, 0.6, 0.35, 1) infinite;
+}
+
+.destination-pulse-halo {
+  position: absolute;
+  inset: -6px;
+  border-radius: 9999px;
+  background: rgba(16, 185, 129, 0.4);
+  animation: radar-halo 2.4s cubic-bezier(0.2, 0.6, 0.35, 1) infinite;
+}
+
+/* Print styles for Clean Tax Invoice PDF */
+@media print {
+  body * {
+    visibility: hidden;
+  }
+  .printable-invoice-content,
+  .printable-invoice-content * {
+    visibility: visible;
+  }
+  .printable-invoice-content {
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 100% !important;
+    margin: 0 !important;
+    padding: 24px !important;
+    background: #ffffff !important;
+    border: none !important;
+    box-shadow: none !important;
+  }
+}
+
+/* Global Dark Mode Styling */
+html.dark {
+  color-scheme: dark;
+}
+html.dark body {
+  background-color: #0b0f19;
+  color: #f1f5f9;
+}
+html.dark .bg-white {
+  background-color: #131b2e !important;
+  color: #f1f5f9;
+}
+html.dark .bg-slate-50,
+html.dark .bg-gray-50 {
+  background-color: #0b0f19 !important;
+}
+html.dark .bg-slate-100,
+html.dark .bg-gray-100 {
+  background-color: #1a233a !important;
+}
+html.dark .border-slate-100,
+html.dark .border-slate-200,
+html.dark .border-gray-100,
+html.dark .border-gray-200 {
+  border-color: #24304f !important;
+}
+html.dark .text-slate-900,
+html.dark .text-gray-900,
+html.dark .text-slate-800,
+html.dark .text-gray-800 {
+  color: #f8fafc !important;
+}
+html.dark .text-slate-700,
+html.dark .text-slate-600,
+html.dark .text-gray-600 {
+  color: #cbd5e1 !important;
+}
+html.dark .text-slate-500,
+html.dark .text-slate-400,
+html.dark .text-gray-400 {
+  color: #94a3b8 !important;
+}
+html.dark .glass-nav {
+  background: rgba(19, 27, 46, 0.88) !important;
+  border-color: #24304f !important;
+}
+html.dark input,
+html.dark textarea {
+  color: #f8fafc !important;
+}
+html.dark .leaflet-tile-pane {
+  filter: brightness(0.65) invert(1) contrast(2.8) hue-rotate(200deg) saturate(0.3) !important;
+}

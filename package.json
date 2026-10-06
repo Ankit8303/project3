@@ -1,0 +1,15 @@
+{
+  "name": "tomato-platform",
+  "version": "1.0.0",
+  "description": "Tomato Food Delivery Microservices & Web Platform",
+  "type": "module",
+  "scripts": {
+    "dev": "node scripts/dev-runner.mjs",
+    "start": "node scripts/dev-runner.mjs",
+    "build": "npm --prefix services/auth run build && npm --prefix services/restaurant run build && npm --prefix services/utils run build && npm --prefix services/realtime run build && npm --prefix services/rider run build && npm --prefix services/admin run build && npm --prefix frontend run build",
+    "test": "node --test tests/phase15-ci-cd.test.mjs tests/phase17-production-deployment.test.mjs tests/phase19-final-audit.test.mjs tests/runtime-hardening.test.mjs tests/phase20-release-acceptance.test.mjs"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC"
+}

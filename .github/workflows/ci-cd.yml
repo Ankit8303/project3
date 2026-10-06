@@ -1,0 +1,217 @@
+name: Tomato CI/CD
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: tomato-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  REGISTRY: ghcr.io
+  IMAGE_NAMESPACE: ${{ github.repository_owner }}/tomato
+
+jobs:
+  verify:
+    name: Verify source and security gates
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - name: auth
+            path: services/auth
+            test: true
+          - name: restaurant
+            path: services/restaurant
+            test: false
+          - name: utils
+            path: services/utils
+            test: true
+          - name: realtime
+            path: services/realtime
+            test: false
+          - name: rider
+            path: services/rider
+            test: false
+          - name: admin
+            path: services/admin
+            test: false
+          - name: frontend
+            path: frontend
+            test: false
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: ${{ matrix.path }}/package-lock.json
+
+      - name: Install locked dependencies
+        working-directory: ${{ matrix.path }}
+        run: npm ci
+
+      - name: Dependency vulnerability gate
+        working-directory: ${{ matrix.path }}
+        run: npm audit --audit-level=high
+
+      - name: Run service tests
+        if: matrix.test
+        working-directory: ${{ matrix.path }}
+        run: npm test
+
+      - name: Build
+        working-directory: ${{ matrix.path }}
+        run: npm run build
+
+  repository-policy:
+    name: Repository security policy
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Secret scan
+        uses: gitleaks/gitleaks-action@v2
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Dependency review
+        if: github.event_name == 'pull_request'
+        uses: actions/dependency-review-action@v4
+        with:
+          fail-on-severity: high
+
+      - name: Validate CI/CD policy
+        run: node --test tests/phase15-ci-cd.test.mjs
+
+      - name: Run failure-engineering drills
+        run: node --experimental-strip-types --test tests/phase16-failure-engineering.test.mjs
+
+  container-security:
+    name: Container security scan
+    needs: [verify, repository-policy]
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        service: [auth, restaurant, utils, realtime, rider, admin]
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Build local image for security scanning
+        uses: docker/build-push-action@v6
+        with:
+          context: ./services/${{ matrix.service }}
+          load: true
+          tags: tomato/${{ matrix.service }}:ci-${{ github.sha }}
+          target: runtime
+          provenance: false
+          sbom: false
+
+      - name: Scan image with Trivy
+        uses: aquasecurity/trivy-action@0.28.0
+        with:
+          image-ref: tomato/${{ matrix.service }}:ci-${{ github.sha }}
+          format: table
+          exit-code: '1'
+          ignore-unfixed: true
+          severity: CRITICAL,HIGH
+
+  release:
+    name: Build and publish immutable release images
+    needs: [verify, repository-policy, container-security]
+    if: github.event_name == 'workflow_dispatch' || github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    environment: production
+    permissions:
+      contents: read
+      packages: write
+      attestations: write
+      id-token: write
+    strategy:
+      fail-fast: false
+      matrix:
+        service: [auth, restaurant, utils, realtime, rider, admin]
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Login to GHCR
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Docker metadata
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAMESPACE }}/${{ matrix.service }}
+          tags: |
+            type=raw,value=sha-${{ github.sha }}
+
+      - name: Build and publish immutable image
+        uses: docker/build-push-action@v6
+        with:
+          context: ./services/${{ matrix.service }}
+          target: runtime
+          push: true
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+          provenance: true
+          sbom: true
+          build-args: |
+            SOURCE_COMMIT=${{ github.sha }}
+
+      - name: Attest published image provenance
+        uses: actions/attest-build-provenance@v2
+        with:
+          subject-name: ${{ env.REGISTRY }}/${{ env.IMAGE_NAMESPACE }}/${{ matrix.service }}
+          subject-digest: ${{ steps.meta.outputs.digest }}
+          push-to-registry: true
+
+  release-manifest:
+    name: Publish release manifest
+    needs: release
+    if: github.event_name == 'workflow_dispatch' || github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    environment: production
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+      - name: Generate immutable image manifest
+        run: |
+          mkdir -p release
+          cat > release/images.txt <<MANIFEST
+          tomato release commit: ${{ github.sha }}
+          registry: ${{ env.REGISTRY }}
+          owner: ${{ env.IMAGE_NAMESPACE }}
+          auth=sha-${{ github.sha }}
+          restaurant=sha-${{ github.sha }}
+          utils=sha-${{ github.sha }}
+          realtime=sha-${{ github.sha }}
+          rider=sha-${{ github.sha }}
+          admin=sha-${{ github.sha }}
+          MANIFEST
+      - name: Upload release manifest
+        uses: actions/upload-artifact@v4
+        with:
+          name: tomato-release-${{ github.sha }}
+          path: release/images.txt
+          retention-days: 30
